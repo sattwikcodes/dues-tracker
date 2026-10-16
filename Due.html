@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<title>Dues</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f5f5f7;--card:#fff;--ink:#1d1d1f;--mute:#86868b;--line:#e8e8ed;--blue:#0071e3;--red:#d70015;--green:#248a3d;--fill:#f2f2f7}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#000;--card:#1c1c1e;--ink:#f5f5f7;--mute:#98989d;--line:#2c2c2e;--blue:#2997ff;--red:#ff453a;--green:#30d158;--fill:#2c2c2e}}
+:root[data-theme="dark"]{--bg:#000;--card:#1c1c1e;--ink:#f5f5f7;--mute:#98989d;--line:#2c2c2e;--blue:#2997ff;--red:#ff453a;--green:#30d158;--fill:#2c2c2e}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*:before,*:after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Inter","Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1020px;margin:0 auto;padding:32px 20px 64px}
+header{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:24px}
+h1{font-size:34px;letter-spacing:-.025em;margin:0;font-weight:700}
+.sub{color:var(--mute)}
+.tot{display:flex;gap:24px}.tot div{text-align:right}.tot small{color:var(--mute);display:block;font-size:13px}
+.tot b{font-size:24px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.grid{display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border-radius:18px;padding:18px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.card+.card{margin-top:16px}
+h2{font-size:13px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;margin:0 0 12px}
+input{font:inherit;color:var(--ink);background:var(--fill);border:1px solid transparent;border-radius:10px;padding:11px 12px;width:100%;outline:none;transition:.15s}
+input:focus{border-color:var(--blue);background:var(--card)}
+.row{display:flex;gap:8px}.row>*{min-width:0}
+button{font:inherit;cursor:pointer;border:0;border-radius:980px;padding:10px 18px;background:var(--blue);color:#fff;font-weight:500;transition:.15s;white-space:nowrap}
+@media(hover:hover){button:hover{opacity:.88}}button:active{transform:scale(.97)}
+button.ghost{background:var(--fill);color:var(--blue)}
+button.x{background:none;color:var(--mute);padding:4px 8px;font-size:18px;line-height:1}
+@media(hover:hover){button.x:hover{color:var(--red)}}
+.person{display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:12px;cursor:pointer;gap:8px}
+@media(hover:hover){.person:hover{background:var(--fill)}}.person.on{background:var(--blue);color:#fff}
+.person.on .amt{color:#fff}
+.amt{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}.pos{color:var(--green)}.neg{color:var(--red)}.zero{color:var(--mute)}
+.empty{color:var(--mute);text-align:center;padding:28px 8px}
+.dh{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+.dh h3{margin:0;font-size:26px;letter-spacing:-.02em}
+.big{font-size:40px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;margin:2px 0 16px}
+.item{display:flex;align-items:center;gap:8px;padding:12px 0;border-top:1px solid var(--line)}
+.item .m{flex:1;min-width:0}.item .n{font-weight:500;overflow-wrap:anywhere}.item .t{color:var(--mute);font-size:13px}
+.seg{display:flex;background:var(--fill);border-radius:10px;padding:3px;gap:3px;margin-bottom:8px}
+.seg button{flex:1;background:none;color:var(--ink);border-radius:8px;padding:8px 6px;font-size:14px}
+.seg button.on{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.add{display:grid;grid-template-columns:130px 1fr 150px auto;gap:8px;margin-top:4px}
+@media(max-width:620px){.add{grid-template-columns:1fr 1fr}.add button{grid-column:1/-1}}
+#th{width:40px;height:40px;padding:0;font-size:18px;border-radius:50%}
+button.danger{background:var(--red)}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:980px;font-size:14px;z-index:9;box-shadow:0 4px 20px rgba(0,0,0,.25);max-width:90%;text-align:center}
+
+/* cross-device */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;color-scheme:light dark}
+:root[data-theme="light"]{color-scheme:light}:root[data-theme="dark"]{color-scheme:dark}
+body{-webkit-tap-highlight-color:transparent;overflow-x:hidden}
+.wrap{padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+button,.person{touch-action:manipulation;-webkit-user-select:none;user-select:none}
+button{min-height:44px;-webkit-appearance:none;appearance:none}
+button.x{min-width:44px;padding:4px 8px}
+#th{width:44px;min-width:44px}
+.seg button{min-height:40px}
+input{font-size:16px;min-height:44px;-webkit-appearance:none;appearance:none;border-radius:10px}
+input[type=date]{min-width:0;display:block;text-align:left}
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+button:focus-visible,input:focus-visible,.person:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.person{min-height:48px}
+.grid{grid-template-columns:300px minmax(0,1fr)}
+.grid>*{min-width:0}
+.item .n,.person span:first-child{overflow-wrap:anywhere;min-width:0}
+.dh h3{overflow-wrap:anywhere;min-width:0}
+.card svg{max-width:100%;height:auto}
+@media(min-width:1400px){.wrap{max-width:1180px}h1{font-size:40px}}
+@media(max-width:760px){
+  .grid{grid-template-columns:minmax(0,1fr)}
+  aside{display:contents}
+  .pc{order:1}#main{order:2}.fc{order:3}
+  .wrap{padding-top:20px}
+}
+@media(max-width:620px){
+  .add{grid-template-columns:1fr 1fr}
+  .add #a{order:1}.add #d{order:2}.add #n{order:3;grid-column:1/-1}.add button{order:4;grid-column:1/-1}
+}
+@media(max-width:480px){
+  h1{font-size:28px}
+  header{align-items:flex-start}
+  .tot{gap:16px}.tot b{font-size:20px}
+  .big{font-size:34px}.dh h3{font-size:22px}
+  .item{flex-wrap:wrap}.item .m{flex:1 1 100%}.item .amt{margin-right:auto}
+  .dh .row{width:100%;flex-wrap:wrap}.dh .row button{flex:1}
+}
+@media(max-width:340px){.card{padding:14px}.wrap{padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px))}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div><h1>Dues</h1><div class="sub">Two-way dues, payments and clean statements.</div></div>
+  <div class="row" style="align-items:flex-end;gap:20px"><button id="th" class="ghost" aria-label="Switch light or dark mode" title="Light / Dark">☾</button>
+  <div class="tot"><div><small>You'll receive</small><b id="gr" class="pos">₹0</b></div><div><small>You owe</small><b id="gp" class="neg">₹0</b></div></div></div>
+</header>
+<div class="grid">
+  <aside>
+    <div class="card pc">
+      <h2>People</h2>
+      <div class="row"><input id="pn" placeholder="Add a person" autocomplete="off"><button id="pa" class="ghost">Add</button></div>
+      <div id="list" style="margin-top:10px"></div>
+    </div>
+    <div class="card fc">
+      <h2>From (you)</h2>
+      <input id="me" placeholder="Your name" autocomplete="off">
+      <input id="pay" placeholder="Your UPI ID (e.g. name@bank)" style="margin-top:8px" autocomplete="off">
+    </div>
+  </aside>
+  <main id="main"></main>
+</div>
+</div>
+<script>
+var S={me:"",pay:"",people:[],sel:null},F={kind:"due",dir:"they",a:"",n:"",d:""};
+var $=function(i){return document.getElementById(i)};
+try{
+  var r2=localStorage.getItem("dues-v2");
+  if(r2)S=Object.assign(S,JSON.parse(r2));
+  else{var r1=localStorage.getItem("dues-v1");
+    if(r1){var o=JSON.parse(r1);S.me=o.me||"";S.pay=o.pay||"";S.sel=o.sel||null;
+      S.people=(o.people||[]).map(function(p){var it=[];(p.items||[]).forEach(function(i){
+        it.push({id:i.id,kind:"due",dir:"they",amt:i.amt,note:i.note,date:i.date});
+        if(i.paid)it.push({id:i.id+"p",kind:"pay",dir:"they",amt:i.amt,note:"Paid: "+(i.note||"Due"),date:i.date})});
+        return{id:p.id,name:p.name,items:it}})}}
+}catch(e){}
+function save(){S.F=F;try{localStorage.setItem("dues-v2",JSON.stringify(S))}catch(e){}}
+F=Object.assign(F,S.F||{});
+if(!S.people.some(function(p){return p.id===S.sel}))S.sel=S.people.length?S.people[0].id:null;
+var UPI="",HOLDER="";
+function upiLink(p,b){var id=S.pay.trim().replace(/\s/g,"");if(!id||!(b>0))return "";
+  return "upi://pay?pa="+id+(S.me.trim()?"&pn="+encodeURIComponent(S.me.trim()):"")+"&am="+b.toFixed(2)+"&cu=INR&tn="+encodeURIComponent(("Dues - "+p.name).slice(0,40))}
+function qrMatrix(x){var q=qrcode(0,"M");q.addData(x);q.make();return q}
+function qrSvg(q){var n=q.getModuleCount(),d="";for(var r=0;r<n;r++)for(var c=0;c<n;c++)if(q.isDark(r,c))d+="M"+c+","+r+"h1v1h-1z";
+  var m=n+4;return '<svg viewBox="-2 -2 '+m+' '+m+'" width="168" height="168" shape-rendering="crispEdges"><rect x="-2" y="-2" width="'+m+'" height="'+m+'" fill="#fff"/><path d="'+d+'" fill="#000"/></svg>'}
+if(!S.pay)S.pay=UPI;if(!S.me)S.me=HOLDER;
+var armed=null;
+function applyTheme(){var t=S.theme||(window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");document.documentElement.setAttribute("data-theme",t);$("th").textContent=t==="dark"?"☀︎":"☾"}
+function toast(m){var o=document.createElement("div");o.className="toast";o.textContent=m;document.body.appendChild(o);setTimeout(function(){o.remove()},3500)}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+function num(n){return Number(n).toLocaleString("en-IN",{maximumFractionDigits:2})}
+function inr(n){return "₹"+num(n)}
+function uid(){return Math.random().toString(36).slice(2,9)}
+function sg(i){return i.kind==="due"?(i.dir==="they"?1:-1):-1}
+function bal(p){return p.items.reduce(function(a,i){return a+sg(i)*i.amt},0)}
+function fd(d){if(!d)return "";var x=new Date(d+"T00:00:00");return isNaN(x)?d:x.toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}
+function today(){var d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
+function cur(){return S.people.find(function(p){return p.id===S.sel})}
+function lbl(i,n){return i.kind==="due"?(i.dir==="they"?n+" owes you":"You owe "+n):(i.dir==="they"?n+" paid you":"You paid "+n)}
+function side(b){return b>0?'<span class="amt pos">+'+inr(b)+'</span>':b<0?'<span class="amt neg">−'+inr(-b)+'</span>':'<span class="amt zero">Settled</span>'}
+
+function qcard(p,b){if(!(b>0))return "";
+  if(!S.pay.trim())return '<div class="card"><h2>Payment QR</h2><div class="sub">Add your UPI ID under "From (you)" to create a payment QR.</div></div>';
+  if(typeof qrcode!=="function")return '<div class="card"><h2>Payment QR</h2><div class="sub">QR tool didn\'t load. Reload the page.</div></div>';
+  return '<div class="card"><h2>Payment QR</h2><div class="row" style="align-items:center;gap:18px;flex-wrap:wrap"><div style="border-radius:14px;overflow:hidden;line-height:0;flex:none">'+qrSvg(qrMatrix(upiLink(p,b)))+'</div><div style="min-width:180px;flex:1"><div class="n" style="font-size:17px">Scan to pay '+inr(b)+'</div><div class="t sub">to '+esc(S.pay.trim())+'</div><div class="t sub" style="margin-top:6px;font-size:13px">Made for '+esc(p.name)+'. It updates as the balance changes and is added to the PDF.</div></div></div></div>'}
+function render(){
+  if($("me").value!==S.me)$("me").value=S.me;if($("pay").value!==S.pay)$("pay").value=S.pay;
+  var rc=0,py=0;S.people.forEach(function(p){var b=bal(p);if(b>0)rc+=b;else py-=b});
+  $("gr").textContent=inr(rc);$("gp").textContent=inr(py);
+  $("list").innerHTML=S.people.length?S.people.map(function(p){
+    return '<div class="person'+(p.id===S.sel?' on':'')+'" data-sel="'+p.id+'"><span>'+esc(p.name)+'</span>'+side(bal(p))+'</div>'}).join(""):'<div class="empty">No one yet.</div>';
+  var p=cur(),m=$("main");
+  if(!p){m.innerHTML='<div class="card empty">Add a person to start recording dues.</div>';return}
+  var b=bal(p);
+  var head=b>0?[esc(p.name)+' owes you','pos',inr(b)]:b<0?['You owe '+esc(p.name),'neg',inr(-b)]:['Everything is good','pos','All settled ✓'];
+  var it=p.items.map(function(i){var s=sg(i)>0;
+    return '<div class="item"><div class="m"><div class="n">'+esc(i.note||(i.kind==="due"?"Due":"Payment"))+'</div><div class="t">'+esc(lbl(i,p.name))+' · '+fd(i.date)+'</div></div>'
+    +'<span class="amt '+(s?'pos':'neg')+'">'+(s?'+':'−')+inr(i.amt)+'</span>'
+    +'<button class="x" data-act="flip" data-i="'+i.id+'" title="Switch direction">⇄</button><button class="x" data-act="del" data-i="'+i.id+'" title="Delete">×</button></div>'}).join("");
+  var due=F.kind==="due",L=due?["They owe me","I owe them"]:["They paid me","I paid them"];
+  m.innerHTML='<div class="card"><div class="dh"><h3>'+esc(p.name)+'</h3><div class="row"><button data-act="pdf">Download PDF</button>'+(armed===p.id?'<button class="danger" data-act="delp">Confirm remove</button><button class="ghost" data-act="cancel">Cancel</button>':'<button class="ghost" style="color:var(--red)" data-act="delp">Remove</button>')+'</div></div>'
+  +'<div class="sub">'+head[0]+'</div><div class="big '+head[1]+'">'+head[2]+'</div>'+(it||'<div class="empty">Nothing recorded yet.</div>')+'</div>'
+  +qcard(p,b)
+  +'<div class="card"><h2>Add entry</h2>'
+  +'<div class="seg"><button data-k="due" class="'+(due?'on':'')+'">Due</button><button data-k="pay" class="'+(due?'':'on')+'">Payment</button></div>'
+  +'<div class="seg"><button data-d="they" class="'+(F.dir==="they"?'on':'')+'">'+L[0]+'</button><button data-d="me" class="'+(F.dir==="me"?'on':'')+'">'+L[1]+'</button></div>'
+  +'<div class="add"><input id="a" type="number" inputmode="decimal" min="0" step="any" placeholder="₹ Amount" value="'+esc(F.a)+'"><input id="n" placeholder="Note (optional)" value="'+esc(F.n)+'"><input id="d" type="date" value="'+esc(F.d||today())+'"><button data-act="add">Add</button></div></div>';
+}
+function grab(){if($("a")){F.a=$("a").value;F.n=$("n").value;F.d=$("d").value}}
+
+function addPerson(){var v=$("pn").value.trim();if(!v)return;var p={id:uid(),name:v,items:[]};S.people.push(p);S.sel=p.id;$("pn").value="";save();render()}
+$("pa").onclick=addPerson;
+$("pn").onkeydown=function(e){if(e.key==="Enter"){e.preventDefault();addPerson()}};
+$("me").oninput=function(){S.me=this.value;save();render()};
+$("pay").oninput=function(){S.pay=this.value;save();render()};
+
+document.addEventListener("click",function(e){
+  var s=e.target.closest("[data-sel]");if(s){armed=null;grab();S.sel=s.dataset.sel;save();render();return}
+  var k=e.target.closest("[data-k],[data-d]");if(k){grab();if(k.dataset.k)F.kind=k.dataset.k;else F.dir=k.dataset.d;render();return}
+  var b=e.target.closest("[data-act]");if(!b)return;var p=cur();if(!p)return;var a=b.dataset.act;
+  if(a==="add"){var amt=parseFloat($("a").value);if(!(amt>0)){$("a").focus();return}
+    p.items.push({id:uid(),kind:F.kind,dir:F.dir,amt:amt,note:$("n").value.trim(),date:$("d").value||today()});F.a="";F.n="";save();render()}
+  else if(a==="flip"){var i=p.items.find(function(x){return x.id===b.dataset.i});i.dir=i.dir==="they"?"me":"they";save();render()}
+  else if(a==="del"){p.items=p.items.filter(function(x){return x.id!==b.dataset.i});save();render()}
+  else if(a==="delp"){if(armed!==p.id){armed=p.id;render();return}
+    armed=null;S.people=S.people.filter(function(x){return x!==p});S.sel=S.people.length?S.people[0].id:null;save();render();toast(p.name+" removed")}
+  else if(a==="cancel"){armed=null;render()}
+  else if(a==="pdf"){makePdf(p)}
+});
+
+var dlApi=null;
+function rs(n){return "Rs. "+num(n)}
+function makePdf(p){
+  var J=window.jspdf;
+  if(!J){toast("PDF tool didn't load. Check your connection and reload.");return}
+  var d=new J.jsPDF({unit:"mm",format:"a4"}),W=210,M=18,y=24,B=bal(p),me=S.me.trim()||"Me";
+  var now=new Date().toLocaleDateString("en-IN",{day:"numeric",month:"long",year:"numeric"});
+  var G=[134,134,139],K=[29,29,31];
+  function t(s,x,yy,o){d.text(s,x,yy,o)}
+  d.setFont("helvetica","bold");d.setFontSize(9);d.setTextColor.apply(d,G);t("STATEMENT OF DUES",M,y);
+  y+=10;d.setFontSize(22);d.setTextColor.apply(d,K);t(now,M,y);
+  y+=14;d.setFontSize(8);d.setTextColor.apply(d,G);t("FROM",M,y);t("TO",W-M,y,{align:"right"});
+  y+=7;d.setFontSize(14);d.setTextColor.apply(d,K);t(me,M,y);t(p.name,W-M,y,{align:"right"});
+  y+=10;var h=B?36:26;d.setFillColor(245,245,247);d.roundedRect(M,y,W-2*M,h,4,4,"F");
+  d.setFont("helvetica","normal");d.setFontSize(11);d.setTextColor(81,81,84);
+  t(B>0?"Your due to "+me+" is":B<0?"My due to you is":"Everything is good.",M+8,y+12);
+  d.setFont("helvetica","bold");
+  if(B){d.setFontSize(26);d.setTextColor(215,0,21);t(rs(Math.abs(B)),M+8,y+27)}
+  else{d.setFontSize(18);d.setTextColor(36,138,61);t("All settled. Thank you!",M+8,y+21)}
+  y+=h+14;
+  if(p.items.length){
+    d.setFontSize(8);d.setTextColor.apply(d,G);t("DATE",M,y);t("DETAILS",M+32,y);t("AMOUNT",W-M,y,{align:"right"});
+    y+=3;d.setDrawColor(232,232,237);d.line(M,y,W-M,y);y+=7;
+    p.items.forEach(function(i){
+      var ln=d.splitTextToSize(i.note||(i.kind==="due"?"Due":"Payment"),100),need=ln.length*5+9;
+      if(y+need>270){d.addPage();y=24}
+      d.setFont("helvetica","normal");d.setFontSize(10);d.setTextColor.apply(d,K);t(fd(i.date),M,y);t(ln,M+32,y);
+      var s=sg(i)>0;d.setFont("helvetica","bold");t((s?"+ ":"- ")+rs(i.amt),W-M,y,{align:"right"});
+      var yy=y+ln.length*5;d.setFont("helvetica","normal");d.setFontSize(8);d.setTextColor.apply(d,G);
+      t((i.kind==="due"?"Due - ":"Payment - ")+(i.kind==="due"?(i.dir==="they"?"you owe me":"I owe you"):(i.dir==="they"?"you paid me":"I paid you")),M+32,yy);
+      y=yy+4;d.line(M,y,W-M,y);y+=7});
+    if(y>262){d.addPage();y=24}
+    d.setFont("helvetica","bold");d.setFontSize(12);d.setTextColor.apply(d,K);
+    t("Net balance",M+32,y+2);t(B>0?"You owe me "+rs(B):B<0?"I owe you "+rs(-B):"Settled",W-M,y+2,{align:"right"});y+=12;
+    d.setFont("helvetica","normal");d.setFontSize(8);d.setTextColor.apply(d,G);t("+ adds to what you owe me   |   - reduces it",M,y);y+=8}
+  var lk=upiLink(p,B);
+  if(B>0&&lk){
+    if(y>218){d.addPage();y=24}
+    d.setFillColor(245,245,247);d.roundedRect(M,y,W-2*M,50,5,5,"F");
+    d.setFillColor(255,255,255);d.roundedRect(M+6,y+6,38,38,4,4,"F");
+    if(window.qrcode){var q=qrMatrix(lk),n=q.getModuleCount(),cs=38/(n+4),ox=M+6+2*cs,oy=y+6+2*cs;
+      d.setFillColor(0,0,0);
+      for(var r=0;r<n;r++)for(var c=0;c<n;c++)if(q.isDark(r,c))d.rect(ox+c*cs,oy+r*cs,cs+0.03,cs+0.03,"F")}
+    d.setFont("helvetica","bold");d.setFontSize(8);d.setTextColor.apply(d,G);t("SCAN TO PAY",M+52,y+15);
+    d.setFontSize(20);d.setTextColor.apply(d,K);t(rs(B),M+52,y+25);
+    d.setFontSize(11);t(S.pay.trim(),M+52,y+33);
+    d.setFont("helvetica","normal");d.setFontSize(9);d.setTextColor.apply(d,G);
+    if(S.me.trim())t("Account holder: "+S.me.trim(),M+52,y+39);t("Works with any UPI app",M+52,y+44);
+    y+=60}
+  d.setFontSize(8);d.setTextColor.apply(d,G);t("Prepared by "+me+" on "+now+".",M,y);
+  var nm="Statement-"+(p.name.replace(/[^\w\- ]+/g,"").trim().replace(/\s+/g,"-")||"person")+".pdf";
+  var blob=d.output("blob");
+  if(dlApi){dlApi.save({filename:nm,data:blob}).catch(function(err){if(err&&err.code!=="declined")toast("Couldn't save: "+(err.message||err.code))})}
+  else{var u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=nm;document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(u)},4000)}
+}
+render();
+applyTheme();
+$("th").onclick=function(){var cd=document.documentElement.getAttribute("data-theme")==="dark";S.theme=cd?"light":"dark";save();applyTheme()};
+document.addEventListener("input",function(e){if(e.target.id==="a"||e.target.id==="n"||e.target.id==="d"){grab();save()}});
+var st;window.addEventListener("scroll",function(){clearTimeout(st);st=setTimeout(function(){S.y=window.scrollY;save()},300)});
+if(S.y){try{window.scrollTo(0,S.y)}catch(e){}}
+(function(){try{if(window.claude&&claude.use)claude.use("downloads").then(function(x){dlApi=x}).catch(function(){})}catch(e){}})();
+</script>
+</body>
+</html>
